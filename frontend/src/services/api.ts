@@ -1,0 +1,108 @@
+import axios from 'axios';
+import { store } from '../store';
+import { setCredentials, clearCredentials } from '../store/slices/authSlice';
+import { API_BASE_URL } from '../utils/constants';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+api.interceptors.request.use((config) => {
+  const token = store.getState().auth.accessToken;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+let isRefreshing = false;
+let failedQueue: { resolve: (token: string) => void; reject: (err: unknown) => void }[] = [];
+
+function processQueue(error: unknown, token: string | null) {
+  failedQueue.forEach((p) => {
+    if (error) {
+      p.reject(error);
+    } else {
+      p.resolve(token!);
+    }
+  });
+  failedQueue = [];
+}
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Don't intercept auth endpoints to avoid infinite loops
+    if (
+      originalRequest?.url?.includes('/auth/login') ||
+      originalRequest?.url?.includes('/auth/register') ||
+      originalRequest?.url?.includes('/auth/refresh')
+    ) {
+      return Promise.reject(error);
+    }
+
+    // On 401, try refreshing the token before logging out
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const isAuthPage =
+        window.location.pathname === '/login' || window.location.pathname === '/register';
+      if (isAuthPage) {
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        // Queue this request until the refresh completes
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token: string) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              resolve(api(originalRequest));
+            },
+            reject,
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = store.getState().auth.refreshToken;
+      if (!refreshToken) {
+        isRefreshing = false;
+        return Promise.reject(error);
+      }
+
+      try {
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+          refreshToken,
+        });
+
+        const { accessToken, refreshToken: newRefreshToken } = res.data.data;
+        store.dispatch(setCredentials({ accessToken, refreshToken: newRefreshToken }));
+
+        processQueue(null, accessToken);
+        isRefreshing = false;
+
+        // Retry original request with new token
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        isRefreshing = false;
+        
+        // Permanent session loss - clear store and redirect to login
+        store.dispatch(clearCredentials());
+        
+        // We don't force page reload here (SPA friendly), but reject with the error
+        // so UI can show a clean error message or Navigate component can handle redirect
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export default api;

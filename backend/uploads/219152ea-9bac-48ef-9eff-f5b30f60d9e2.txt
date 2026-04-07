@@ -1,0 +1,8 @@
+﻿src/components/sidebar/ListItem.tsx(3,1): error TS6133: 'motion' is declared but its value is never read.
+src/tests/LoginPage.test.tsx(5,37): error TS6133: 'waitFor' is declared but its value is never read.
+src/tests/LoginPage.test.tsx(11,27): error TS2307: Cannot find module '../../pages/auth/LoginPage' or its corresponding type declarations.
+src/tests/LoginPage.test.tsx(12,25): error TS2307: Cannot find module '../../store/slices/authSlice' or its corresponding type declarations.
+src/tests/LoginPage.test.tsx(13,25): error TS2307: Cannot find module '../../store/slices/userSlice' or its corresponding type declarations.
+src/tests/LoginPage.test.tsx(14,26): error TS2307: Cannot find module '../../store/slices/themeSlice' or its corresponding type declarations.
+src/tests/LoginPage.test.tsx(15,28): error TS2307: Cannot find module '../../store/slices/sidebarSlice' or its corresponding type declarations.
+src/tests/LoginPage.test.tsx(16,33): error TS2307: Cannot find module '../../store/slices/organizationSlice' or its corresponding type declarations.

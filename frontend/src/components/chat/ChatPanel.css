@@ -1,0 +1,17 @@
+.avatar-bg-0 { background-color: #f31260; }
+.avatar-bg-1 { background-color: #0070f3; }
+.avatar-bg-2 { background-color: #17c964; }
+.avatar-bg-3 { background-color: #9333ea; }
+.avatar-bg-4 { background-color: #f5a623; }
+.avatar-bg-5 { background-color: #eb00ff; }
+.avatar-bg-me { background-color: #6366f1; }
+
+.avatar-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.avatar-content {
+    position: relative;
+    z-index: 10;
+}
