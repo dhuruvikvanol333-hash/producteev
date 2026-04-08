@@ -290,15 +290,11 @@ export function PeoplePage() {
                                   <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] z-[100] py-1.5 overflow-hidden">
                                     {isAdmin && (
                                       <>
-                                        {/* MEMBER: Show Manage Access AND separator */}
-                                        {member.role === 'MEMBER' && (
-                                          <>
-                                            <button onClick={() => { setSelectedUser(member.user); setIsSpaceModalOpen(true); setActiveMenuId(null); }} className="w-full px-4 py-2 text-left text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 font-medium"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>Manage Access</button>
-                                            <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
-                                          </>
-                                        )}
+                                        {/* Show Manage Access AND separator for all non-owners */}
+                                        <button onClick={() => { setSelectedUser(member.user); setIsSpaceModalOpen(true); setActiveMenuId(null); }} className="w-full px-4 py-2 text-left text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 font-medium"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>Manage Access</button>
+                                        <div className="border-t border-gray-100 dark:border-gray-700 my-1" />
 
-                                        {/* ALL non-owners (including MEMBER) get role changing options */}
+                                        {/* ALL non-owners get role changing options */}
                                         <button onClick={() => { handleUpdateRole(member.user.id, 'MEMBER'); setActiveMenuId(null); }} className={`w-full px-4 py-2 text-left text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 ${member.role === 'MEMBER' ? 'text-indigo-600' : 'text-gray-700 dark:text-gray-300'}`}>Make Member</button>
                                         <button onClick={() => { handleUpdateRole(member.user.id, 'LIMITED_MEMBER'); setActiveMenuId(null); }} className={`w-full px-4 py-2 text-left text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 ${member.role === 'LIMITED_MEMBER' ? 'text-indigo-600' : 'text-gray-700 dark:text-gray-300'}`}>Make Limited Member</button>
                                         <button onClick={() => { handleUpdateRole(member.user.id, 'GUEST'); setActiveMenuId(null); }} className={`w-full px-4 py-2 text-left text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 ${member.role === 'GUEST' ? 'text-indigo-600' : 'text-gray-700 dark:text-gray-300'}`}>Make Guest</button>

@@ -5,12 +5,12 @@ import { NotificationService } from './notification.service';
 import { stripHtml } from '../utils/string';
 
 export class CommentService {
-  static async create(taskId: string, userId: string, text: string, role: OrgRole) {
+  static async create(taskId: string, userId: string, text: string, role: OrgRole, fileData?: { imageUrl?: string | null; fileUrl?: string | null; fileName?: string | null; fileType?: string | null; fileSize?: number | null }) {
     const task = await prisma.task.findUnique({ where: { id: taskId } });
     if (!task) throw ApiError.notFound('Task not found');
 
     const comment = await prisma.comment.create({
-      data: { taskId, userId, text },
+      data: { taskId, userId, text, ...fileData },
       include: {
         user: { select: { id: true, firstName: true, lastName: true, avatarUrl: true } },
       },

@@ -8,7 +8,12 @@ import { ApiError } from '../utils/ApiError';
 import { prisma } from '../config/database';
 
 const createSchema = z.object({
-  text: z.string().min(1),
+  text: z.string().optional().default(''),
+  imageUrl: z.string().optional().nullable(),
+  fileUrl: z.string().optional().nullable(),
+  fileName: z.string().optional().nullable(),
+  fileType: z.string().optional().nullable(),
+  fileSize: z.number().optional().nullable(),
 });
 
 export class CommentController {
@@ -16,7 +21,7 @@ export class CommentController {
   create = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) throw ApiError.unauthorized();
     const taskId = req.params.taskId as string;
-    const { text } = createSchema.parse(req.body);
+    const { text, imageUrl, fileUrl, fileName, fileType, fileSize } = createSchema.parse(req.body);
 
     const task = await TaskService.getById(taskId, req.user.id);
     // @ts-ignore - Assuming verifyTaskAccess is accessible or use TaskService logic
@@ -37,7 +42,8 @@ export class CommentController {
     if (!membership) throw ApiError.forbidden('Not a member of this organization');
     if (membership.role === 'GUEST') throw ApiError.forbidden('Guests cannot add comments');
 
-    const comment = await CommentService.create(taskId, req.user.id, text, membership.role);
+    const fileData = { imageUrl, fileUrl, fileName, fileType, fileSize };
+    const comment = await CommentService.create(taskId, req.user.id, text || '', membership.role, fileData);
 
     await ActivityService.log({
       userId: req.user.id,

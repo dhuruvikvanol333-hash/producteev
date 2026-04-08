@@ -19,18 +19,34 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 
+// ─── Wrapper to handle Vite dynamic import failures ────────────────────────────
+function lazyImport<T extends React.ComponentType<any>>(
+  importFn: () => Promise<{ default: T }>
+) {
+  return lazy(async () => {
+    try {
+      return await importFn();
+    } catch (error: any) {
+      if (error?.message?.includes('Failed to fetch dynamically imported module') || error?.name === 'ChunkLoadError') {
+        window.location.reload();
+      }
+      throw error;
+    }
+  });
+}
+
 // ─── Lazy loaded (code-split) ────────────────────────────────────────────────
-const TaskDetailPage = lazy(() => import('./pages/tasks/TaskDetailPage').then(m => ({ default: m.TaskDetailPage })));
-const AssignedToMePage = lazy(() => import('./pages/tasks/AssignedToMePage').then(m => ({ default: m.AssignedToMePage })));
-const TeamAssignedPage = lazy(() => import('./pages/tasks/TeamAssignedPage').then(m => ({ default: m.TeamAssignedPage })));
-const SettingsPage = lazy(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
-const PeoplePage = lazy(() => import('./pages/people/PeoplePage').then(m => ({ default: m.PeoplePage })));
-const ListPage = lazy(() => import('./pages/lists/ListPage').then(m => ({ default: m.ListPage })));
-const ListSettingsPage = lazy(() => import('./pages/lists/ListSettingsPage').then(m => ({ default: m.ListSettingsPage })));
-const CreateWorkspacePage = lazy(() => import('./pages/onboarding/CreateWorkspacePage').then(m => ({ default: m.CreateWorkspacePage })));
-const SpaceDashboardPage = lazy(() => import('./pages/spaces/SpaceDashboardPage').then(m => ({ default: m.SpaceDashboardPage })));
-const InboxPage = lazy(() => import('./pages/inbox/InboxPage').then(m => ({ default: m.InboxPage })));
-const InboxDetailsPage = lazy(() => import('./pages/inbox/InboxDetailsPage').then(m => ({ default: m.InboxDetailsPage })));
+const TaskDetailPage = lazyImport(() => import('./pages/tasks/TaskDetailPage').then(m => ({ default: m.TaskDetailPage })));
+const AssignedToMePage = lazyImport(() => import('./pages/tasks/AssignedToMePage').then(m => ({ default: m.AssignedToMePage })));
+const TeamAssignedPage = lazyImport(() => import('./pages/tasks/TeamAssignedPage').then(m => ({ default: m.TeamAssignedPage })));
+const SettingsPage = lazyImport(() => import('./pages/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const PeoplePage = lazyImport(() => import('./pages/people/PeoplePage').then(m => ({ default: m.PeoplePage })));
+const ListPage = lazyImport(() => import('./pages/lists/ListPage').then(m => ({ default: m.ListPage })));
+const ListSettingsPage = lazyImport(() => import('./pages/lists/ListSettingsPage').then(m => ({ default: m.ListSettingsPage })));
+const CreateWorkspacePage = lazyImport(() => import('./pages/onboarding/CreateWorkspacePage').then(m => ({ default: m.CreateWorkspacePage })));
+const SpaceDashboardPage = lazyImport(() => import('./pages/spaces/SpaceDashboardPage').then(m => ({ default: m.SpaceDashboardPage })));
+const InboxPage = lazyImport(() => import('./pages/inbox/InboxPage').then(m => ({ default: m.InboxPage })));
+const InboxDetailsPage = lazyImport(() => import('./pages/inbox/InboxDetailsPage').then(m => ({ default: m.InboxDetailsPage })));
 
 function PageFallback() {
   return (

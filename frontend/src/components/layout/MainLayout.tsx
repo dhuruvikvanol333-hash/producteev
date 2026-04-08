@@ -573,20 +573,20 @@ export function MainLayout() {
       const res = await api.get(`/organizations/config/init${params}`);
       if (res.data.success) {
         const { organizations, currentOrg: resolvedOrg, spaces, favorites, assigned, members, unreadCounts } = res.data.data;
-        
+
         dispatch(setOrganizations(organizations));
         if (resolvedOrg && (!currentOrg || currentOrg.id !== resolvedOrg.id)) {
           dispatch(setCurrentOrg({ org: resolvedOrg, role: resolvedOrg.role }));
         }
-        
+
         setSpaces(spaces);
         setFavoriteTasks(favorites);
         setAssignedTasks(assigned);
         setMembers(members);
         dispatch(setAllUnread(unreadCounts));
-        
+
         if (resolvedOrg?.id) {
-           refreshNotifications(resolvedOrg.id);
+          refreshNotifications(resolvedOrg.id);
         }
       }
     } catch (err) {

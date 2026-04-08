@@ -141,7 +141,7 @@ function StatusOption({ s }: { s: any }) {
   }, [s]);
 
   return (
-    <span 
+    <span
       ref={ref}
       className="flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-tight shadow-sm ring-1 ring-inset"
     >
@@ -164,6 +164,34 @@ function IconTrackTime() {
 /* ── Comment toolbar icons ── */
 function IconSend() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z" /></svg>;
+}
+function IconPaperclip() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>;
+}
+
+function CommentFilePreview({ name, size, type, url }: { name: string; size?: number; type?: string; url: string }) {
+  const isImage = type?.startsWith('image/');
+
+  if (isImage) {
+    return (
+      <div className="mt-2.5 relative inline-block w-full flex justify-center">
+        <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-xl bg-gray-100 dark:bg-gray-900 border-none">
+          <img src={url} alt={name} className="max-h-[300px] w-auto object-contain cursor-pointer" loading="lazy" onClick={() => window.open(url, '_blank')} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2 inline-flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:border-indigo-200"
+    >
+      <span className="text-sm font-medium text-indigo-500">{name}</span>
+    </a>
+  );
 }
 
 /* ── Checklist item type ── */
@@ -198,6 +226,10 @@ interface Comment {
     lastName: string;
     avatarUrl: string | null;
   };
+  fileUrl?: string;
+  fileName?: string;
+  fileType?: string;
+  fileSize?: number;
 }
 
 export function TaskDetailPage({ isModal = false, taskId: propTaskId, onClose }: { isModal?: boolean, taskId?: string, onClose?: () => void }) {
@@ -219,6 +251,8 @@ export function TaskDetailPage({ isModal = false, taskId: propTaskId, onClose }:
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState('');
   const [isPostingComment, setIsPostingComment] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [statusDropdown, setStatusDropdown] = useState(false);
   const [priorityDropdown, setPriorityDropdown] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -275,7 +309,7 @@ export function TaskDetailPage({ isModal = false, taskId: propTaskId, onClose }:
 
   /* ── Checklists ── */
   const socket = useSocket();
-  
+
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [addingChecklist, setAddingChecklist] = useState(false);
   const [newChecklistName, setNewChecklistName] = useState('');
@@ -542,6 +576,46 @@ export function TaskDetailPage({ isModal = false, taskId: propTaskId, onClose }:
       alert('Failed to post comment');
     } finally {
       setIsPostingComment(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !id) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setIsUploading(true);
+      const res = await api.post<{
+        success: boolean;
+        fileUrl: string;
+        fileName: string;
+        fileType: string;
+        fileSize: number;
+      }>('/messages/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (res.data.success) {
+        const commentRes = await api.post<{ success: boolean; data: Comment }>(`/tasks/${id}/comments`, {
+          text: comment.trim() || '',
+          fileUrl: res.data.fileUrl,
+          fileName: res.data.fileName,
+          fileType: res.data.fileType,
+          fileSize: res.data.fileSize
+        });
+        
+        setComment(''); // clear comment input if sent together
+        setComments((prev) => [...prev, commentRes.data.data]);
+        setActivityRefreshKey((k) => k + 1);
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -1069,14 +1143,14 @@ export function TaskDetailPage({ isModal = false, taskId: propTaskId, onClose }:
                 </div>
                 <div className="flex-1 space-y-3">
                   {task.status !== 'COMPLETED' && (
-                    <button 
+                    <button
                       onClick={() => setShowTimeTracker(!showTimeTracker)}
                       className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-[13px] font-medium text-gray-600 dark:text-gray-300 transition-all shadow-sm"
                       title={showTimeTracker ? "Hide time tracker" : "Open time tracker"}
                     >
                       <div className="w-5 h-5 bg-gray-400 dark:bg-gray-500 rounded-full flex items-center justify-center text-white">
                         {showTimeTracker ? (
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M6 11h12v2H6z"/></svg>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M6 11h12v2H6z" /></svg>
                         ) : (
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                         )}
@@ -1543,6 +1617,14 @@ export function TaskDetailPage({ isModal = false, taskId: propTaskId, onClose }:
                       <span className="text-[11px] text-gray-400 dark:text-gray-500">{formatDate(c.createdAt)}</span>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{c.text}</p>
+                    {c.fileUrl && (
+                      <CommentFilePreview
+                        name={c.fileName || 'file'}
+                        size={c.fileSize}
+                        type={c.fileType}
+                        url={c.fileUrl}
+                      />
+                    )}
                   </div>
                 </div>
               ))}
@@ -1570,11 +1652,27 @@ export function TaskDetailPage({ isModal = false, taskId: propTaskId, onClose }:
                 title="Write a comment"
               />
               <div className="flex items-center gap-1.5 shrink-0 pb-2.5">
-                <button className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" title="More options"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg></button>
+                <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} title="Upload a file" />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading || isPostingComment}
+                  className={`text-gray-400 dark:text-gray-500 hover:text-indigo-500 hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded-md transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title="Upload image"
+                >
+                  {isUploading ? (
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  ) : <IconPaperclip />}
+                </button>
+                <button className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1" title="More options">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /></svg>
+                </button>
                 <button
                   onClick={handlePostComment}
-                  disabled={!comment.trim() || isPostingComment}
-                  className={`${comment.trim() && !isPostingComment ? 'text-indigo-500 hover:text-indigo-600' : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'}`}
+                  disabled={(!comment.trim() && !isUploading) || isPostingComment}
+                  className={`${(comment.trim() || isUploading) && !isPostingComment ? 'text-indigo-500 hover:text-indigo-600' : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'}`}
                   title="Send message"
                 >
                   {isPostingComment ? (
@@ -1596,7 +1694,7 @@ export function TaskDetailPage({ isModal = false, taskId: propTaskId, onClose }:
         )}
       </div>
     </div>
-);
+  );
 
   if (isModal) {
     return (

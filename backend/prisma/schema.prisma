@@ -279,7 +279,12 @@ model Comment {
   id        String   @id @default(uuid()) @db.Uuid
   taskId    String   @map("task_id") @db.Uuid
   userId    String   @map("user_id") @db.Uuid
-  text      String
+  text      String?  
+  imageUrl  String?  @map("image_url")
+  fileUrl   String?  @map("file_url")
+  fileType  String?  @map("file_type")
+  fileName  String?  @map("file_name")
+  fileSize  Int?     @map("file_size")
   createdAt DateTime @default(now()) @map("created_at")
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user      User     @relation("userComments", fields: [userId], references: [id], onDelete: Cascade)

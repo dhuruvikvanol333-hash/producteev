@@ -144,10 +144,7 @@ export class OrganizationController {
     const resolvedOrgId = currentOrg?.id;
 
     const [spaces, favorites, assigned, members, unreadCounts] = await Promise.all([
-      resolvedOrgId ? prisma.space.findMany({
-        where: { organizationId: resolvedOrgId, members: { some: { userId: req.user.id } } },
-        include: { folders: { include: { lists: true } }, lists: { where: { folderId: null } } }
-      }) : [],
+      resolvedOrgId ? import('../services/space.service').then(s => s.SpaceService.getByUser(req.user!.id, resolvedOrgId)) : [],
       resolvedOrgId ? TaskService.getFavorites(req.user.id, resolvedOrgId) : [],
       resolvedOrgId ? TaskService.getAssignedToUser(req.user.id, resolvedOrgId) : [],
       resolvedOrgId ? OrganizationService.listMembers(resolvedOrgId) : [],
