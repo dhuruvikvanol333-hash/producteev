@@ -17,6 +17,7 @@
     "lint": "npm run lint --workspaces --if-present",
     "db:migrate": "npm run db:migrate --workspace=backend",
     "db:seed": "npm run db:seed --workspace=backend",
+    "start": "npm run start --workspace=backend"
     {
   "name": "clickup-pms",
   "version": "0.1.0",
