@@ -16,7 +16,8 @@
     "build": "npm run build:backend && npm run build:frontend",
     "lint": "npm run lint --workspaces --if-present",
     "db:migrate": "npm run db:migrate --workspace=backend",
-    "db:seed": "npm run db:seed --workspace=backend"
+    "db:seed": "npm run db:seed --workspace=backend",
+    "start": "npm run start --workspace=backend"
   },
   "engines": {
     "node": ">=20.0.0"

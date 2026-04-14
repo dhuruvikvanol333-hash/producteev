@@ -204,8 +204,17 @@ export class TaskController {
     });
     if (!list) throw ApiError.notFound('List not found');
 
+    if (!list.space) {
+      throw ApiError.notFound('List space not found');
+    }
+
     const membership = await prisma.organizationMember.findUnique({
-      where: { organizationId_userId: { organizationId: list.space.organizationId, userId: req.user.id } },
+      where: {
+        organizationId_userId: {
+          organizationId: list.space.organizationId,
+          userId: req.user.id,
+        },
+      },
     });
     if (!membership) throw ApiError.forbidden('Not a member of this organization');
 
